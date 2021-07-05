@@ -1,6 +1,7 @@
 const _this = {};
 
 const canvas = document.getElementsByTagName("canvas")[0];
+const LNG = -122.4175, LAT = 37.655;
 
 function initCesium() {
     const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -9,15 +10,16 @@ function initCesium() {
     });
 
     viewer.camera.flyTo({
-        destination : Cesium.Cartesian3.fromDegrees(-122.4175, 37.655, 400),
+        destination : Cesium.Cartesian3.fromDegrees(LNG, LAT, 300),
         orientation : {
             heading : Cesium.Math.toRadians(0.0),
-            pitch : Cesium.Math.toRadians(-15.0),
+            pitch : Cesium.Math.toRadians(-90.0),
         }
     });
 
     _this.viewer = viewer;
-    _this.base_point = cart2vec(Cesium.Cartesian3.fromDegrees(-122.4175, 37.655, 200));
+    _this.base_point = cart2vec(Cesium.Cartesian3.fromDegrees(LNG, LAT, 50));
+    _this.base_point_up = cart2vec(Cesium.Cartesian3.fromDegrees(LNG, LAT, 300));
 }
 
 function initBabylon() {
@@ -27,9 +29,24 @@ function initBabylon() {
 
     const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -10), scene);
     camera.attachControl(canvas, true);
-    const light = new BABYLON.HemisphericLight("hemispheric", new BABYLON.Vector3(1, 1, 0), scene);
 
-    const box = BABYLON.MeshBuilder.CreateBox("box", {}, scene);
+    _this.root_node = new BABYLON.TransformNode("BaseNode", scene);
+    _this.root_node.lookAt(_this.base_point_up.subtract(_this.base_point));
+    _this.root_node.addRotation(Math.PI / 2, 0, 0);
+
+    const box = BABYLON.MeshBuilder.CreateBox("box", {size: 10}, scene);
+    const material = new BABYLON.StandardMaterial("Material", scene);
+    material.emissiveColor = new BABYLON.Color3(1, 0, 0);
+    material.alpha = 0.5;
+    box.material = material;
+    box.parent = _this.root_node;
+
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {
+        width: 100,
+        height: 100
+    }, scene);
+    ground.material = material;
+    ground.parent = _this.root_node;
 
     _this.engine = engine;
     _this.scene = scene;
@@ -77,7 +94,6 @@ function cart2vec(cart) {
 
 initCesium();
 initBabylon();
-
 _this.engine.runRenderLoop(() => {
     _this.scene.render();
     moveBabylonCamera();

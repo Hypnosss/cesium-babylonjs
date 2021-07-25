@@ -28,7 +28,6 @@ function initBabylon() {
     scene.clearColor = BABYLON.Color4(0, 0, 0, 0);
 
     const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -10), scene);
-    camera.attachControl(canvas, true);
 
     _this.root_node = new BABYLON.TransformNode("BaseNode", scene);
     _this.root_node.lookAt(_this.base_point_up.subtract(_this.base_point));
@@ -95,7 +94,7 @@ function cart2vec(cart) {
 initCesium();
 initBabylon();
 _this.engine.runRenderLoop(() => {
-    _this.scene.render();
-    moveBabylonCamera();
     _this.viewer.render();
+    moveBabylonCamera();
+    _this.scene.render();
 });
